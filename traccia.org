@@ -1,0 +1,241 @@
+# -*- coding: utf-8 -*-
+#+TITLE: Traccia per la serata su Docker
+#+AUTHOR: Alberto Berti <alberto@metapensiero.it
+#+LANGUAGE: it
+#+CATEGORY:
+#+SEQ_TODO: TODO WONTDO WiP DONE
+#+PROPERTY: Effort_ALL 0 0:10 0:30 1:00 2:00 3:00 4:00 5:00 6:00 7:00 8:00
+#+COLUMNS: %40ITEM(Voce) %13Effort(Tempo stimato){:} %CLOCKSUM(Tempo effettivo)
+
+* Introduzione ai containers
+
+** C'era una volta
+   Le tecnologie precedenti sono state:
+
+   - [[http://user-mode-linux.sourceforge.net/][UML]]
+   - [[http://www.openvz.org][OpenVZ]]
+   - [[http://linux-vserver.org/][Linux VServer]] (2001)
+
+   (Un po' morti tutti quanti)
+   (l'ultimo kernel Debian usabile con OpenVZ è un 2.6.32)
+
+** Nuova linfa
+   Dal tentativo di unificare l'interfaccia usata da questi progetti,
+   sono stati creati dei servizi/strutture ad-hoc nel kernel. Sono:
+
+   - [[https://lwn.net/Articles/531114/#series_index][namespaces]] (anche [[http://crosbymichael.com/category/docker.html][qui]]):
+
+     + Mount (2.4.19);
+     + UTS   (2.6.19);
+     + IPC   (2.6.19-2.6.30);
+     + PID   (2.6.24);
+     + NET   (2.6.24-2.6.29);
+     + User  (2.6.23-3.8);
+
+   - [[http://lwn.net/Articles/605039/][control groups]]:
+
+     + net_prio, net_cls;
+     + blkio;
+     + cpuset;
+     + ....
+
+   - root capabilities.
+
+
+** Nuova linfa 2
+
+   Un nuovo range di tools si sviluppa da queste basi:
+
+   - [[https://linuxcontainers.org/lxc/introduction/][LXC]]: (primo commit nell'Agosto 2008-1.0 nel Febbraio 2014)
+     + contributori: ~ 180;
+     + commits: ~ 3.000;
+   - [[http://docker.com][Docker]]: nato come componente di una piattaforma in competizione
+     con Heroku (primo commit nel Febbraio 2013-1.0 nel Giugno 2014)
+     + contributori: ~ 1.200;
+     + commits: ~ 20.000;
+   - [[https://linuxcontainers.org/lxd/introduction/][LXD]]: ovvero LXC più user friendly e in mano a Canonical:
+   - machinectl/systemd-nspawn;
+   - [[https://coreos.com/rkt/docs/latest/][rkt]] / [[https://github.com/appc/spec/][appc]]: di CoreOS, molto legato a systemd ma con specifiche
+     aperte;
+   - [[https://runc.io/][OpenContainers/runc]]: runtime di Docker e specifice di immagine appc.
+
+
+** Situazione del software (grossomodo)
+
+   Una volta:
+
+   - LAMP;
+
+   Ora:
+
+   - web frontend;
+   - api-endpoint;
+   - db
+   - queue e jobs in background;
+
+   Molteplici e diverse soluzioni riguardo all'hardware
+
+   Simile alla situazione con le spedizioni...
+
+** La situazione del packaging
+
+   PIÙ GENERICO
+
+   - vm;
+
+   - immagine LXC;
+
+   - pacchetto .deb/.rpm;
+
+   - jar/pip/...
+
+   PIÙ SPECIFICO DELL'APPLICAZIONE
+
+* INSTALLAZIONE
+
+** Primi passi
+   #+BEGIN_SRC screen
+
+     # wget -qO- https://get.docker.com/ | sh
+     wget -qO- https://get.docker.com/ | less
+
+   #+END_SRC
+
+   Attenzione al pacchetto perché è fatto per jessie
+
+   Per modificare i parametri di avvio (da eseguire come root):
+
+   #+BEGIN_SRC conf -n
+     [Service]
+     ExecStart=
+     ExecStart=/usr/bin/docker daemon -s aufs -H fd://
+   #+END_SRC
+
+   #+BEGIN_SRC screen
+     mkdir /etc/systemd/system/docker.service.d
+     emacs -nw /etc/systemd/system/docker.service.d/params.conf
+     systemctl daemon-reload
+     systemctl start docker
+   #+END_SRC
+
+   Aggiungersi al gruppo docker
+
+   #+BEGIN_SRC screen
+
+     adduser <nome utente> docker
+
+   #+END_SRC
+
+** Primi passi
+
+
+   - api orientata ai processi
+   - simile a git per altri versi
+
+   Comandi principali:
+
+   - run
+   - ps
+   - images
+   - diff
+   - history
+   - commit
+   - push
+
+** Docker build
+
+   #+BEGIN_SRC dockerfile -n :tangle nginx/Dockerfile.nginx
+     FROM debian:jessie
+
+     ENV DEBIAN_FRONTEND=noninteractive
+     RUN apt-get update && apt-get install -y nginx
+     RUN echo 'Ciao corso docker' > /var/www/html/index.html
+
+     CMD nginx -g 'daemon off;'
+     EXPOSE 80
+
+   #+END_SRC
+
+   #+BEGIN_SRC screen
+     docker build -t azazel/nginx nginx
+
+   #+END_SRC
+
+   Allocando un porta qualsiasi
+
+   ... è anche possibile farne partire più di uno
+   #+BEGIN_SRC screen
+     NGINX=$(docker run -dP  azazel/nginx)
+     NGINX_PORT=$(docker port $NGINX 80)
+     curl http://$NGINX_PORT
+
+   #+END_SRC
+
+
+** Compose-complex
+
+
+   #+BEGIN_SRC ditaa :file compose-complex.png
+
+
+                           user agents
+                 +----------+          +----------+     +----------+
+                 |   cYEL   |          |   cYEL   |     |   API    |
+                 |          |  ......  |          |     |   cYEL   |
+                 | browser  |          |  browser |     | consumer |
+                 +----+---+-+          +----------+     +----------+
+                      |   ^
+                      |   |
+                      |   +----=---+
+                      +--------+   |                  ---- http/altro ----
+                               |   |
+                               v   v                  --=- websocket --=-
+                            +--+---+------+
+                            |   cGRE      |
+            /---------------+  Frontend   +-------------------------------+
+            |               | HTTP (nginx)+-----+                         |
+            |               +-----+-+---+-+     |                         |
+            |                     | |   ^       |                         |
+            |            /--------/ |   |       |      +---------------+  |
+            v            |          |   |       |      |     RDBMS     |  |
+     +------+-------+    |    /-----|---|-------|----->+     cPNK      |  |
+     | Applicativo  |    |    |     |   |       |      | (mysql/       |  |
+     | Marketplace  |    |    |     |   |       +-+    |      postgres)|  |
+     |   (js)       |    |    |     |   |         |    +------------+--+  |
+     |   cBLU       |    |    |     |   :         |                 ^     |
+     +--------+-----+    |    |     |   |      /--|-=-----------\   |     |
+              ^          |    |     |   |      |  |             |   |     |
+              |          v    v     |   |      :  +------+      |   |     |
+              |   +------+----+-+   |   v      v         |      v   v     v
+              |   |    cBLU     |   | +-+------+-----+   | +----+---+-----++
+              |   | Gestionale  |   | |     cBLU     |   | |     cBLU      |
+              |   |    Zope     |   | |   Crossbar   |   | |  API endpoint |
+              |   |  (python)   |   | |  rpc router  |   | |               |
+              |   +------+------+   | |   (python)   |   | |   (python)    |
+              |          |          | +--------------+   | +----------+----+
+              |          |          |                    |            ^
+              |          |          v                    |            |
+              |          |   +------+---------+          |            |
+       +------+------+   |   |     cBLU       |          |            |
+       | BDD tests   |   |   |  Thumbnailer   |          |     +------+-----+
+       | con selenium|   |   | crop/scale/res |          |     |   test     |
+       |             |   |   |    (python)    |  +-------+     | funzionali |
+       | (python     |   |   +------+---------+  |             |   e unit   |
+       |   e java)   |   |          |            |             |            |
+       +------+------+   +----+     +-+          |             +------------+
+              ^               |       |          |
+              |               |       v          v
+              |               |    +--+----------+--+
+              v               |    |    cPNK        |
+       +------+-------+       |    |   storage      |
+       |  Test driver |       +--->+   documenti    |
+       |              |            |   e immagini   |
+       | (java e      |            |                |
+       |    chromium) |            +----------------+
+       |              |
+       +--------------+
+
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:compose-complex.png]]
