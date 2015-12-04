@@ -415,6 +415,6 @@
    #+RESULTS:
    [[file:compose-complex.png]]
 
-* Dove trovre risorse
+* Dove trovare risorse
 
   Una ottima lista di [[http://veggiemonk.github.io/awesome-docker/][progetti e risorse e strumenti]] legati a Docker.
