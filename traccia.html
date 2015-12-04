@@ -4,10 +4,10 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="it" xml:lang="it">
 <head>
 <title>Traccia per la serata su Docker</title>
-<!-- 2015-12-02 mer 00:12 -->
+<!-- 2015-12-04 ven 14:27 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
-<meta  name="author" content="Alberto Berti &lt;alberto@metapensiero.it" />
+<meta  name="author" content="Alberto Berti &lt;alberto@metapensiero.it&gt;" />
 <style type="text/css">
  <!--/*--><![CDATA[/*><!--*/
   .title  { text-align: center; }
@@ -142,33 +142,63 @@ for the JavaScript code in this tag.
 <h2>Indice</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#sec-1">1. Introduzione ai containers</a>
+<li><a href="#sec-1">1. Come scaricare questi appunti</a></li>
+<li><a href="#sec-2">2. Introduzione ai containers</a>
 <ul>
-<li><a href="#sec-1-1">1.1. C'era una volta</a></li>
-<li><a href="#sec-1-2">1.2. Nuova linfa</a></li>
-<li><a href="#sec-1-3">1.3. Nuova linfa 2</a></li>
-<li><a href="#sec-1-4">1.4. Situazione del software (grossomodo)</a></li>
-<li><a href="#sec-1-5">1.5. La situazione del packaging</a></li>
+<li><a href="#sec-2-1">2.1. C'era una volta</a></li>
+<li><a href="#sec-2-2">2.2. Nuova linfa</a></li>
+<li><a href="#sec-2-3">2.3. Nuova linfa 2</a></li>
+<li><a href="#sec-2-4">2.4. Situazione del software (grossomodo)</a></li>
+<li><a href="#sec-2-5">2.5. La situazione del packaging</a></li>
+<li><a href="#sec-2-6">2.6. Che cos'è Docker</a></li>
 </ul>
 </li>
-<li><a href="#sec-2">2. INSTALLAZIONE</a>
+<li><a href="#sec-3">3. Installazione</a>
 <ul>
-<li><a href="#sec-2-1">2.1. Primi passi</a></li>
-<li><a href="#sec-2-2">2.2. Primi passi</a></li>
-<li><a href="#sec-2-3">2.3. Docker build</a></li>
-<li><a href="#sec-2-4">2.4. Compose-complex</a></li>
+<li><a href="#sec-3-1">3.1. L'avete installato?</a></li>
 </ul>
 </li>
+<li><a href="#sec-4">4. Uso</a>
+<ul>
+<li><a href="#sec-4-1">4.1. Primi passi</a></li>
+<li><a href="#sec-4-2">4.2. Docker build</a></li>
+<li><a href="#sec-4-3">4.3. Debugging del build</a></li>
+<li><a href="#sec-4-4">4.4. links</a></li>
+<li><a href="#sec-4-5">4.5. volumi</a></li>
+<li><a href="#sec-4-6">4.6. Compose</a></li>
+<li><a href="#sec-4-7">4.7. Compose-complex</a></li>
+</ul>
+</li>
+<li><a href="#sec-5">5. Dove trovre risorse</a></li>
 </ul>
 </div>
 </div>
 
 <div id="outline-container-sec-1" class="outline-2">
-<h2 id="sec-1"><span class="section-number-2">1</span> Introduzione ai containers</h2>
+<h2 id="sec-1"><span class="section-number-2">1</span> Come scaricare questi appunti</h2>
 <div class="outline-text-2" id="text-1">
-</div><div id="outline-container-sec-1-1" class="outline-3">
-<h3 id="sec-1-1"><span class="section-number-3">1.1</span> C'era una volta</h3>
-<div class="outline-text-3" id="text-1-1">
+<p>
+Se non avete installato git installate il pacchetto "git-core" (su
+debian e ubuntu), quindi clonate il repo come segue:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-screen">git clone --depth=1 --recursive https://github.com/azazel75/serata_docker.git
+cd serata_docker
+firefox traccia.html
+</pre>
+</div>
+</div>
+</div>
+
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> Introduzione ai containers</h2>
+<div class="outline-text-2" id="text-2">
+</div><div id="outline-container-sec-2-1" class="outline-3">
+<h3 id="sec-2-1"><span class="section-number-3">2.1</span> C'era una volta</h3>
+<div class="outline-text-3" id="text-2-1">
 <p>
 Le tecnologie precedenti sono state:
 </p>
@@ -189,9 +219,9 @@ Le tecnologie precedenti sono state:
 </div>
 </div>
 
-<div id="outline-container-sec-1-2" class="outline-3">
-<h3 id="sec-1-2"><span class="section-number-3">1.2</span> Nuova linfa</h3>
-<div class="outline-text-3" id="text-1-2">
+<div id="outline-container-sec-2-2" class="outline-3">
+<h3 id="sec-2-2"><span class="section-number-3">2.2</span> Nuova linfa</h3>
+<div class="outline-text-3" id="text-2-2">
 <p>
 Dal tentativo di unificare l'interfaccia usata da questi progetti,
 sono stati creati dei servizi/strutture ad-hoc nel kernel. Sono:
@@ -237,9 +267,9 @@ sono stati creati dei servizi/strutture ad-hoc nel kernel. Sono:
 </div>
 
 
-<div id="outline-container-sec-1-3" class="outline-3">
-<h3 id="sec-1-3"><span class="section-number-3">1.3</span> Nuova linfa 2</h3>
-<div class="outline-text-3" id="text-1-3">
+<div id="outline-container-sec-2-3" class="outline-3">
+<h3 id="sec-2-3"><span class="section-number-3">2.3</span> Nuova linfa 2</h3>
+<div class="outline-text-3" id="text-2-3">
 <p>
 Un nuovo range di tools si sviluppa da queste basi:
 </p>
@@ -276,9 +306,9 @@ aperte;
 </div>
 
 
-<div id="outline-container-sec-1-4" class="outline-3">
-<h3 id="sec-1-4"><span class="section-number-3">1.4</span> Situazione del software (grossomodo)</h3>
-<div class="outline-text-3" id="text-1-4">
+<div id="outline-container-sec-2-4" class="outline-3">
+<h3 id="sec-2-4"><span class="section-number-3">2.4</span> Situazione del software (grossomodo)</h3>
+<div class="outline-text-3" id="text-2-4">
 <p>
 Una volta:
 </p>
@@ -304,18 +334,24 @@ Ora:
 </ul>
 
 <p>
+I sistemi applicativi ora sono molto più articolati ed eterogenei.
+</p>
+
+<p>
 Molteplici e diverse soluzioni riguardo all'hardware
 </p>
 
 <p>
-Simile alla situazione con le spedizioni&#x2026;
+Docker si pone verso il software in modo simile alla situazione con
+le spedizioni in cui molte problematiche sono state risolte con
+l'adozione di un contenitore standard, il <i>container</i>.
 </p>
 </div>
 </div>
 
-<div id="outline-container-sec-1-5" class="outline-3">
-<h3 id="sec-1-5"><span class="section-number-3">1.5</span> La situazione del packaging</h3>
-<div class="outline-text-3" id="text-1-5">
+<div id="outline-container-sec-2-5" class="outline-3">
+<h3 id="sec-2-5"><span class="section-number-3">2.5</span> La situazione del packaging</h3>
+<div class="outline-text-3" id="text-2-5">
 <p>
 PIÙ GENERICO
 </p>
@@ -339,14 +375,40 @@ PIÙ SPECIFICO DELL'APPLICAZIONE
 </p>
 </div>
 </div>
+
+<div id="outline-container-sec-2-6" class="outline-3">
+<h3 id="sec-2-6"><span class="section-number-3">2.6</span> Che cos'è Docker</h3>
+<div class="outline-text-3" id="text-2-6">
+<ol class="org-ol">
+<li>Un demone per gestire i container:
+
+<ul class="org-ul">
+<li>usa layer sovrapposti e cow per gerstire l'fs;
+</li>
+<li>usa namespace e cgroups per isolare e controllare i processi.
+</li>
+</ul>
+</li>
+
+<li>Un servizio di registry delle immagini (e dei layer)
+disponibili.
+</li>
+</ol>
+</div>
+</div>
 </div>
 
-<div id="outline-container-sec-2" class="outline-2">
-<h2 id="sec-2"><span class="section-number-2">2</span> INSTALLAZIONE</h2>
-<div class="outline-text-2" id="text-2">
-</div><div id="outline-container-sec-2-1" class="outline-3">
-<h3 id="sec-2-1"><span class="section-number-3">2.1</span> Primi passi</h3>
-<div class="outline-text-3" id="text-2-1">
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> Installazione</h2>
+<div class="outline-text-2" id="text-3">
+</div><div id="outline-container-sec-3-1" class="outline-3">
+<h3 id="sec-3-1"><span class="section-number-3">3.1</span> L'avete installato?</h3>
+<div class="outline-text-3" id="text-3-1">
+<p>
+Consiglio di installare il pacchetto fornito da Docker perché
+quello Debian/Ubuntu è sempre un po' indietro.
+</p>
+
 <div class="org-src-container">
 
 <pre class="src src-screen"># wget -qO- https://get.docker.com/ | sh
@@ -366,14 +428,40 @@ Per modificare i parametri di avvio (da eseguire come root):
 
 <pre class="src src-conf"><span class="linenr">1: </span>[Service]
 <span class="linenr">2: </span>ExecStart=
-<span class="linenr">3: </span>ExecStart=/usr/bin/docker daemon -s aufs -H fd://
+<span class="linenr">3: </span>ExecStart=/usr/bin/docker daemon -s btrfs --icc=false -H fd://
 </pre>
 </div>
 
+<p>
+L'opzione <b>-s</b> qui sopra stabilisce lo <i>storage driver</i> che il
+demone Docker userà; ne esistono diversi come:
+</p>
+
+<ul class="org-ul">
+<li>aufs;
+</li>
+<li>overlay;
+</li>
+<li>btrfs;
+</li>
+<li>devicemapper;
+</li>
+</ul>
+
+<p>
+Il primo non è più disponibile sui kernel recenti, perché è stato
+sostituito dal secondo, che però io ho trovato non funzionare molto
+bene. Io attualmente uso un Linux 4.2.6 e Docker 1.9.1.
+</p>
+
+<p>
+Da eseguire come root
+</p>
 <div class="org-src-container">
 
 <pre class="src src-screen">mkdir /etc/systemd/system/docker.service.d
-emacs -nw /etc/systemd/system/docker.service.d/params.conf
+# copiare le righe sopra nel file /etc/systemd/system/docker.service.d/params.conf
+# emacs -nw /etc/systemd/system/docker.service.d/params.conf
 systemctl daemon-reload
 systemctl start docker
 </pre>
@@ -390,10 +478,14 @@ Aggiungersi al gruppo docker
 </div>
 </div>
 </div>
+</div>
 
-<div id="outline-container-sec-2-2" class="outline-3">
-<h3 id="sec-2-2"><span class="section-number-3">2.2</span> Primi passi</h3>
-<div class="outline-text-3" id="text-2-2">
+<div id="outline-container-sec-4" class="outline-2">
+<h2 id="sec-4"><span class="section-number-2">4</span> Uso</h2>
+<div class="outline-text-2" id="text-4">
+</div><div id="outline-container-sec-4-1" class="outline-3">
+<h3 id="sec-4-1"><span class="section-number-3">4.1</span> Primi passi</h3>
+<div class="outline-text-3" id="text-4-1">
 <ul class="org-ul">
 <li>api orientata ai processi
 </li>
@@ -424,19 +516,23 @@ Comandi principali:
 </div>
 </div>
 
-<div id="outline-container-sec-2-3" class="outline-3">
-<h3 id="sec-2-3"><span class="section-number-3">2.3</span> Docker build</h3>
-<div class="outline-text-3" id="text-2-3">
+<div id="outline-container-sec-4-2" class="outline-3">
+<h3 id="sec-4-2"><span class="section-number-3">4.2</span> Docker build</h3>
+<div class="outline-text-3" id="text-4-2">
 <div class="org-src-container">
 
-<pre class="src src-dockerfile"><span class="linenr">1: </span>FROM debian:jessie
-<span class="linenr">2: </span>
-<span class="linenr">3: </span>ENV DEBIAN_FRONTEND=noninteractive
-<span class="linenr">4: </span>RUN apt-get update &amp;&amp; apt-get install -y nginx
-<span class="linenr">5: </span>RUN echo 'Ciao corso docker' &gt; /var/www/html/index.html
-<span class="linenr">6: </span>
-<span class="linenr">7: </span>CMD nginx -g 'daemon off;'
-<span class="linenr">8: </span>EXPOSE 80
+<pre class="src src-dockerfile"><span class="linenr"> 1: </span>FROM debian:jessie
+<span class="linenr"> 2: </span>
+<span class="linenr"> 3: </span>ENV DEBIAN_FRONTEND=noninteractive
+<span class="linenr"> 4: </span>RUN apt-get update &amp;&amp; apt-get install -y nginx
+<span class="linenr"> 5: </span>
+<span class="linenr"> 6: </span>RUN ln -sf /dev/stdout /var/log/nginx/access.log &amp;&amp; \
+<span class="linenr"> 7: </span>    ln -sf /dev/stderr /var/log/nginx/error.log
+<span class="linenr"> 8: </span>
+<span class="linenr"> 9: </span>RUN echo 'Ciao corso docker' &gt; /var/www/html/index.html
+<span class="linenr">10: </span>
+<span class="linenr">11: </span>CMD ["nginx", "-g", "daemon off;"]
+<span class="linenr">12: </span>EXPOSE 80
 </pre>
 </div>
 
@@ -453,6 +549,7 @@ Allocando un porta qualsiasi
 <p>
 &#x2026; è anche possibile farne partire più di uno
 </p>
+
 <div class="org-src-container">
 
 <pre class="src src-screen">NGINX=$(docker run -dP  azazel/nginx)
@@ -460,13 +557,185 @@ NGINX_PORT=$(docker port $NGINX 80)
 curl http://$NGINX_PORT
 </pre>
 </div>
+
+<div class="org-src-container">
+
+<pre class="src src-screen">docker inspect $NGINX | less
+</pre>
+</div>
+<p>
+Occhio a
+</p>
+
+<ul class="org-ul">
+<li>cache e RUN con side effects e RUN dipendenti;
+</li>
+<li>ogni istruzione è un layer;
+</li>
+<li>errori nella composizione delle liste.
+</li>
+</ul>
+
+<p>
+Dettagli sullo <a href="http://jpetazzo.github.io/assets/2015-07-01-deep-dive-into-docker-storage-drivers.html">storage</a>.
+</p>
 </div>
 </div>
 
+<div id="outline-container-sec-4-3" class="outline-3">
+<h3 id="sec-4-3"><span class="section-number-3">4.3</span> Debugging del build</h3>
+<div class="outline-text-3" id="text-4-3">
+<p>
+Il build dell'immagine <i>nginx</i> di prima produce un output simile a questo:
+</p>
 
-<div id="outline-container-sec-2-4" class="outline-3">
-<h3 id="sec-2-4"><span class="section-number-3">2.4</span> Compose-complex</h3>
-<div class="outline-text-3" id="text-2-4">
+<div class="org-src-container">
+
+<pre class="src src-text">.... omissis ....
+Step 4 : RUN ln -sf /dev/stdout /var/log/nginx/access.log &amp;&amp;     ln -sf /dev/stderr /var/log/nginx/error.log
+ ---&gt; Running in e17c7f93a3f1
+ ---&gt; 8a13ac3dd1ed
+Removing intermediate container e17c7f93a3f1
+Step 5 : RUN echo 'Ciao corso docker' &gt; /var/www/html/index.html
+ ---&gt; Running in 6c955504727d
+ ---&gt; 6211edd8a0e3
+Removing intermediate container 6c955504727d
+Step 6 : CMD nginx -g daemon off;
+ ---&gt; Running in 8d4b89b54cac
+ ---&gt; cf34fefadc18
+Removing intermediate container 8d4b89b54cac
+Step 7 : EXPOSE 80
+ ---&gt; Running in 5f8f2a823ae5
+ ---&gt; 7b811ea66663
+Removing intermediate container 5f8f2a823ae5
+Successfully built 7b811ea66663
+</pre>
+</div>
+
+<p>
+Se uno step dovesse fallire, è possibile eseguire un debugging
+eseguendo <i>bash</i> nell'ultimo step valido. Ad esempio se lo step 5
+qui sopra fosse fallito potrei "entrare" nel container usato per
+eseguire il comando associato con:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-screen">docker run -ti 8a13ac3dd1ed bash
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-4-4" class="outline-3">
+<h3 id="sec-4-4"><span class="section-number-3">4.4</span> links</h3>
+<div class="outline-text-3" id="text-4-4">
+<p>
+Creo un altra immagine per usarla come client
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-dockerfile"><span class="linenr">1: </span>FROM debian:jessie
+<span class="linenr">2: </span>
+<span class="linenr">3: </span>ENV DEBIAN_FRONTEND=noninteractive
+<span class="linenr">4: </span>RUN apt-get update &amp;&amp; apt-get install -y curl
+<span class="linenr">5: </span>
+<span class="linenr">6: </span>ENTRYPOINT ["curl"]
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-screen">docker build -t azazel/curl curl
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-screen">docker inspect $NGINX | grep IPAddress
+docker run --rm azazel/curl
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-screen">docker run --rm --link $NGINX:nginx azazel/curl http://nginx
+docker run --rm --link $NGINX:nginx --entrypoint /bin/bash -ti azazel/curl
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-4-5" class="outline-3">
+<h3 id="sec-4-5"><span class="section-number-3">4.5</span> volumi</h3>
+<div class="outline-text-3" id="text-4-5">
+<div class="org-src-container">
+
+<pre class="src src-dockerfile"><span class="linenr">1: </span>FROM debian:jessie
+<span class="linenr">2: </span>
+<span class="linenr">3: </span>ENV DEBIAN_FRONTEND=noninteractive
+<span class="linenr">4: </span>
+<span class="linenr">5: </span>RUN mkdir -p /opt/volume
+<span class="linenr">6: </span>VOLUME ["/opt/volume"]
+<span class="linenr">7: </span>
+<span class="linenr">8: </span>CMD ["tail", "-f", "/dev/null"]
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-screen">docker build -t azazel/data data_container
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-screen">docker create -v "voldata:/opt/volume" --name data azazel/data
+</pre>
+</div>
+
+
+<div class="org-src-container">
+
+<pre class="src src-screen">docker run --volumes-from data -ti --rm debian:jessie bash
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-4-6" class="outline-3">
+<h3 id="sec-4-6"><span class="section-number-3">4.6</span> Compose</h3>
+<div class="outline-text-3" id="text-4-6">
+<p>
+installazione
+</p>
+
+<ul class="org-ul">
+<li>installare libyaml-dev
+</li>
+</ul>
+
+<div class="org-src-container">
+
+<pre class="src src-screen">python3 -m venv env
+source env/bin/activate
+pip install docker-compose
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-screen">cd example-voting-app/vote-apps
+docker-compose up
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-4-7" class="outline-3">
+<h3 id="sec-4-7"><span class="section-number-3">4.7</span> Compose-complex</h3>
+<div class="outline-text-3" id="text-4-7">
 
 <div class="figure">
 <p><img src="compose-complex.png" alt="compose-complex.png" />
@@ -475,10 +744,19 @@ curl http://$NGINX_PORT
 </div>
 </div>
 </div>
+
+<div id="outline-container-sec-5" class="outline-2">
+<h2 id="sec-5"><span class="section-number-2">5</span> Dove trovre risorse</h2>
+<div class="outline-text-2" id="text-5">
+<p>
+Una ottima lista di <a href="http://veggiemonk.github.io/awesome-docker/">progetti e risorse e strumenti</a> legati a Docker.
+</p>
+</div>
+</div>
 </div>
 <div id="postamble" class="status">
-<p class="author">Autore: Alberto Berti &lt;alberto@metapensiero.it</p>
-<p class="date">Created: 2015-12-02 mer 00:12</p>
+<p class="author">Autore: Alberto Berti &lt;alberto@metapensiero.it&gt;</p>
+<p class="date">Created: 2015-12-04 ven 14:27</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.5.1 (<a href="http://orgmode.org">Org</a> mode 8.2.10)</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>

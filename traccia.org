@@ -1,11 +1,24 @@
 # -*- coding: utf-8 -*-
 #+TITLE: Traccia per la serata su Docker
-#+AUTHOR: Alberto Berti <alberto@metapensiero.it
+#+AUTHOR: Alberto Berti <alberto@metapensiero.it>
 #+LANGUAGE: it
 #+CATEGORY:
 #+SEQ_TODO: TODO WONTDO WiP DONE
 #+PROPERTY: Effort_ALL 0 0:10 0:30 1:00 2:00 3:00 4:00 5:00 6:00 7:00 8:00
 #+COLUMNS: %40ITEM(Voce) %13Effort(Tempo stimato){:} %CLOCKSUM(Tempo effettivo)
+
+* Come scaricare questi appunti
+
+  Se non avete installato git installate il pacchetto "git-core" (su
+  debian e ubuntu), quindi clonate il repo come segue:
+
+  #+BEGIN_SRC screen
+    git clone --depth=1 --recursive https://github.com/azazel75/serata_docker.git
+    cd serata_docker
+    firefox traccia.html
+
+  #+END_SRC
+
 
 * Introduzione ai containers
 
@@ -73,9 +86,13 @@
    - db
    - queue e jobs in background;
 
+   I sistemi applicativi ora sono molto più articolati ed eterogenei.
+
    Molteplici e diverse soluzioni riguardo all'hardware
 
-   Simile alla situazione con le spedizioni...
+   Docker si pone verso il software in modo simile alla situazione con
+   le spedizioni in cui molte problematiche sono state risolte con
+   l'adozione di un contenitore standard, il /container/.
 
 ** La situazione del packaging
 
@@ -91,9 +108,23 @@
 
    PIÙ SPECIFICO DELL'APPLICAZIONE
 
-* INSTALLAZIONE
+** Che cos'è Docker
 
-** Primi passi
+   1) Un demone per gestire i container:
+
+      - usa layer sovrapposti e cow per gerstire l'fs;
+      - usa namespace e cgroups per isolare e controllare i processi.
+
+   2) Un servizio di registry delle immagini (e dei layer)
+      disponibili.
+
+* Installazione
+
+** L'avete installato?
+
+   Consiglio di installare il pacchetto fornito da Docker perché
+   quello Debian/Ubuntu è sempre un po' indietro.
+
    #+BEGIN_SRC screen
 
      # wget -qO- https://get.docker.com/ | sh
@@ -108,26 +139,41 @@
    #+BEGIN_SRC conf -n
      [Service]
      ExecStart=
-     ExecStart=/usr/bin/docker daemon -s aufs -H fd://
+     ExecStart=/usr/bin/docker daemon -s btrfs --icc=false -H fd://
    #+END_SRC
 
+   L'opzione *-s* qui sopra stabilisce lo /storage driver/ che il
+   demone Docker userà; ne esistono diversi come:
+
+   - aufs;
+   - overlay;
+   - btrfs;
+   - devicemapper;
+
+   Il primo non è più disponibile sui kernel recenti, perché è stato
+   sostituito dal secondo, che però io ho trovato non funzionare molto
+   bene. Io attualmente uso un Linux 4.2.6 e Docker 1.9.1.
+
+   Da eseguire come root
    #+BEGIN_SRC screen
      mkdir /etc/systemd/system/docker.service.d
-     emacs -nw /etc/systemd/system/docker.service.d/params.conf
+     # copiare le righe sopra nel file /etc/systemd/system/docker.service.d/params.conf
+     # emacs -nw /etc/systemd/system/docker.service.d/params.conf
      systemctl daemon-reload
      systemctl start docker
+
    #+END_SRC
 
    Aggiungersi al gruppo docker
 
    #+BEGIN_SRC screen
-
      adduser <nome utente> docker
 
    #+END_SRC
 
-** Primi passi
+* Uso
 
+** Primi passi
 
    - api orientata ai processi
    - simile a git per altri versi
@@ -144,14 +190,18 @@
 
 ** Docker build
 
-   #+BEGIN_SRC dockerfile -n :tangle nginx/Dockerfile.nginx
+   #+BEGIN_SRC dockerfile -n :tangle nginx/Dockerfile
      FROM debian:jessie
 
      ENV DEBIAN_FRONTEND=noninteractive
      RUN apt-get update && apt-get install -y nginx
+
+     RUN ln -sf /dev/stdout /var/log/nginx/access.log && \
+         ln -sf /dev/stderr /var/log/nginx/error.log
+
      RUN echo 'Ciao corso docker' > /var/www/html/index.html
 
-     CMD nginx -g 'daemon off;'
+     CMD ["nginx", "-g", "daemon off;"]
      EXPOSE 80
 
    #+END_SRC
@@ -164,6 +214,7 @@
    Allocando un porta qualsiasi
 
    ... è anche possibile farne partire più di uno
+
    #+BEGIN_SRC screen
      NGINX=$(docker run -dP  azazel/nginx)
      NGINX_PORT=$(docker port $NGINX 80)
@@ -171,6 +222,130 @@
 
    #+END_SRC
 
+   #+BEGIN_SRC screen
+     docker inspect $NGINX | less
+
+   #+END_SRC
+   Occhio a
+
+   - cache e RUN con side effects e RUN dipendenti;
+   - ogni istruzione è un layer;
+   - errori nella composizione delle liste.
+
+   Dettagli sullo [[http://jpetazzo.github.io/assets/2015-07-01-deep-dive-into-docker-storage-drivers.html][storage]].
+
+** Debugging del build
+
+   Il build dell'immagine /nginx/ di prima produce un output simile a questo:
+
+   #+BEGIN_SRC text
+     .... omissis ....
+     Step 4 : RUN ln -sf /dev/stdout /var/log/nginx/access.log &&     ln -sf /dev/stderr /var/log/nginx/error.log
+      ---> Running in e17c7f93a3f1
+      ---> 8a13ac3dd1ed
+     Removing intermediate container e17c7f93a3f1
+     Step 5 : RUN echo 'Ciao corso docker' > /var/www/html/index.html
+      ---> Running in 6c955504727d
+      ---> 6211edd8a0e3
+     Removing intermediate container 6c955504727d
+     Step 6 : CMD nginx -g daemon off;
+      ---> Running in 8d4b89b54cac
+      ---> cf34fefadc18
+     Removing intermediate container 8d4b89b54cac
+     Step 7 : EXPOSE 80
+      ---> Running in 5f8f2a823ae5
+      ---> 7b811ea66663
+     Removing intermediate container 5f8f2a823ae5
+     Successfully built 7b811ea66663
+   #+END_SRC
+
+   Se uno step dovesse fallire, è possibile eseguire un debugging
+   eseguendo /bash/ nell'ultimo step valido. Ad esempio se lo step 5
+   qui sopra fosse fallito potrei "entrare" nel container usato per
+   eseguire il comando associato con:
+
+   #+BEGIN_SRC screen
+     docker run -ti 8a13ac3dd1ed bash
+
+   #+END_SRC
+
+** links
+
+   Creo un altra immagine per usarla come client
+
+   #+BEGIN_SRC dockerfile -n :tangle curl/Dockerfile
+     FROM debian:jessie
+
+     ENV DEBIAN_FRONTEND=noninteractive
+     RUN apt-get update && apt-get install -y curl
+
+     ENTRYPOINT ["curl"]
+
+   #+END_SRC
+
+   #+BEGIN_SRC screen
+     docker build -t azazel/curl curl
+
+   #+END_SRC
+
+   #+BEGIN_SRC screen
+     docker inspect $NGINX | grep IPAddress
+     docker run --rm azazel/curl
+
+   #+END_SRC
+
+   #+BEGIN_SRC screen
+     docker run --rm --link $NGINX:nginx azazel/curl http://nginx
+     docker run --rm --link $NGINX:nginx --entrypoint /bin/bash -ti azazel/curl
+   #+END_SRC
+
+** volumi
+
+   #+BEGIN_SRC dockerfile -n :tangle data_container/Dockerfile
+     FROM debian:jessie
+
+     ENV DEBIAN_FRONTEND=noninteractive
+
+     RUN mkdir -p /opt/volume
+     VOLUME ["/opt/volume"]
+
+     CMD ["tail", "-f", "/dev/null"]
+   #+END_SRC
+
+   #+BEGIN_SRC screen
+     docker build -t azazel/data data_container
+
+   #+END_SRC
+
+   #+BEGIN_SRC screen
+     docker create -v "voldata:/opt/volume" --name data azazel/data
+
+   #+END_SRC
+
+
+   #+BEGIN_SRC screen
+     docker run --volumes-from data -ti --rm debian:jessie bash
+
+   #+END_SRC
+
+** Compose
+
+   installazione
+
+   - installare libyaml-dev
+
+   #+BEGIN_SRC screen
+     python3 -m venv env
+     source env/bin/activate
+     pip install docker-compose
+
+   #+END_SRC
+
+   #+BEGIN_SRC screen
+     cd example-voting-app/vote-apps
+     docker-compose up
+
+   #+END_SRC
 
 ** Compose-complex
 
@@ -239,3 +414,7 @@
 
    #+RESULTS:
    [[file:compose-complex.png]]
+
+* Dove trovre risorse
+
+  Una ottima lista di [[http://veggiemonk.github.io/awesome-docker/][progetti e risorse e strumenti]] legati a Docker.
